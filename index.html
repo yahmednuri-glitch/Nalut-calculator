@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nalut Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&family=Poppins:wght@400;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: #0b1120;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .app-container {
+            width: 380px;
+            background-color: #111827;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        /* Top Color Bar */
+        .top-bar {
+            height: 6px;
+            display: flex;
+        }
+        .top-bar div { flex: 1; }
+        .top-bar .b-blue { background-color: #3b82f6; }
+        .top-bar .b-green { background-color: #22c55e; }
+        .top-bar .b-yellow { background-color: #eab308; }
+
+        /* Nalut Heritage Icon (Top Left) */
+        .heritage-icon {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #d4d4d8;
+        }
+        .heritage-icon svg {
+            width: 35px;
+            height: 35px;
+            fill: #a1a1aa;
+            margin-bottom: 2px;
+        }
+        .heritage-icon .tifinagh-text {
+            font-size: 16px;
+            font-weight: bold;
+            color: #a1a1aa;
+            letter-spacing: 1px;
+        }
+
+        .main-content {
+            padding: 30px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Date */
+        .date-display {
+            color: #9ca3af;
+            font-size: 14px;
+            margin-bottom: 15px;
+            direction: rtl;
+            margin-left: 60px; /* offset for the icon */
+        }
+
+        /* Clock Area */
+        .clock-container {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 4px solid #374151;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-top-color: #eab308;
+            border-right-color: #3b82f6;
+            border-bottom-color: #22c55e;
+            border-left-color: #eab308;
+            transition: all 0.3s ease;
+        }
+
+        /* Analog Clock Markers (Tifinagh) */
+        .marker {
+            position: absolute;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .marker-12 { top: 8px; left: 50%; transform: translateX(-50%); color: #eab308; font-size: 20px;}
+        .marker-3  { right: 10px; top: 50%; transform: translateY(-50%); color: #60a5fa; }
+        .marker-6  { bottom: 8px; left: 50%; transform: translateX(-50%); color: #22c55e; }
+        .marker-9  { left: 10px; top: 50%; transform: translateY(-50%); color: #eab308; font-size: 20px;}
+
+        /* Analog Clock Hands */
+        .analog-clock {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+        }
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            background-color: white;
+            border-radius: 4px;
+            transform: translateX(-50%) rotate(0deg);
+            z-index: 2;
+        }
+        .hour-hand { width: 4px; height: 40px; background-color: #eab308; }
+        .min-hand { width: 3px; height: 60px; background-color: #60a5fa; }
+        .sec-hand { width: 2px; height: 70px; background-color: #22c55e; }
+        .center-dot {
+            width: 24px;
+            height: 24px;
+            background-color: #111827;
+            border: 2px solid #eab308;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #eab308;
+            font-size: 12px;
+            z-index: 3;
+        }
+
+        /* Digital Clock */
+        .digital-clock {
+            display: none;
+            font-size: 36px;
+            font-weight: bold;
+            color: #eab308;
+            letter-spacing: 2px;
+            z-index: 4;
+            background-color: rgba(17, 24, 39, 0.8);
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+        .digital-clock span { color: #22c55e; margin: 0 5px; }
+
+        /* Nalut Calculator Title */
+        .nalut-title {
+            margin-top: 15px;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        .nalut-title .nalut-text {
+            color: #fde047;
+            text-shadow: 0 0 8px rgba(253, 224, 71, 0.5);
+        }
+        .nalut-title .calc-text {
+            color: #67e8f9;
+            text-shadow: 0 0 8px rgba(103, 232, 249, 0.5);
+        }
+
+        .toggle-text {
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .author {
+            color: #22c55e;
+            font-size: 14px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+
+        /* Calculator */
+        .calc-display {
+            width: 100%;
+            background-color: #1f2937;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: right;
+            font-size: 40px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+            min-height: 90px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+        }
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            color: rgba(255, 255, 255, 0.03);
+            pointer-events: none;
+        }
+
+        .calc-keys {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn {
+            background-color: #374151;
+            border: none;
+            color: white;
+            font-size: 24px;
+            padding: 15px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-op { background-color: #22c55e; }
+        .btn-eq { background-color: #f59e0b; }
+        .btn-zero { grid-column: span 2; }
+        
+        .tifinagh-sub {
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="top-bar">
+            <div class="b-blue"></div>
+            <div class="b-green"></div>
+            <div class="b-yellow"></div>
+        </div>
+
+        <div class="heritage-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 22V8h2v2h2V8h2v14H4zm6 0V12h4v10h-4zm6 0V8h2v2h2V8h2v14h-6zM3 22h18v2H3v-2z"/>
+            </svg>
+            <div class="tifinagh-text">ⵏⴰⵍⵓⵜ</div>
+        </div>
+
+        <div class="main-content">
+            <div class="date-display" id="date-text"></div>
+
+            <div class="clock-container" id="clock-toggle" onclick="toggleClock()">
+                <div class="marker marker-12">ⵣ</div>
+                <div class="marker marker-3">ⵔ</div>
+                <div class="marker marker-6">ⵙ</div>
+                <div class="marker marker-9">ⵜ</div>
+
+                <div class="analog-clock" id="analog-view">
+                    <div class="hand hour-hand" id="hour-hand"></div>
+                    <div class="hand min-hand" id="min-hand"></div>
+                    <div class="hand sec-hand" id="sec-hand"></div>
+                </div>
+                <div class="center-dot">ⵣ</div>
+                
+                <div class="digital-clock" id="digital-view">
+                    <span id="h">00</span><span>:</span><span id="m" style="color: #eab308;">00</span><span>:</span><span id="s" style="color: #eab308;">00</span>
+                </div>
+            </div>
+
+            <div class="nalut-title">
+                <span class="nalut-text">NALUT</span> <span class="calc-text">CALCULATOR</span>
+            </div>
+
+            <div class="toggle-text" id="toggle-hint" onclick="toggleClock()">اضغط للرقمية</div>
+            <div class="author">— Nuri Yahmed —</div>
+
+            <div class="calc-display">
+                <div class="watermark">ⵣ</div>
+                <div id="display-text">0</div>
+            </div>
+
+            <div class="calc-keys">
+                <button class="btn" onclick="clearDisplay()">AC<span class="tifinagh-sub">o</span></button>
+                <button class="btn" onclick="appendChar('-')">+/-</button>
+                <button class="btn" onclick="appendChar('%')">%<span class="tifinagh-sub">Q</span></button>
+                <button class="btn btn-op" onclick="appendChar('/')">÷<span class="tifinagh-sub">ⵒ</span></button>
+
+                <button class="btn" onclick="appendChar('7')">7</button>
+                <button class="btn" onclick="appendChar('8')">8</button>
+                <button class="btn" onclick="appendChar('9')">9</button>
+                <button class="btn btn-op" onclick="appendChar('*')">×</button>
+
+                <button class="btn" onclick="appendChar('4')">4</button>
+                <button class="btn" onclick="appendChar('5')">5</button>
+                <button class="btn" onclick="appendChar('6')">6</button>
+                <button class="btn btn-op" onclick="appendChar('-')">-</button>
+
+                <button class="btn" onclick="appendChar('1')">1</button>
+                <button class="btn" onclick="appendChar('2')">2</button>
+                <button class="btn" onclick="appendChar('3')">3</button>
+                <button class="btn btn-op" onclick="appendChar('+')">+</button>
+
+                <button class="btn btn-zero" onclick="appendChar('0')">0</button>
+                <button class="btn" onclick="appendChar('.')">.</button>
+                <button class="btn btn-eq" onclick="calculate()">=<br><span style="font-size: 14px;">ⵣ</span></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isDigital = false;
+
+        function updateClock() {
+            const now = new Date();
+            
+            // Date formatting (Arabic)
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('date-text').innerText = now.toLocaleDateString('ar-LY', options);
+
+            // Analog Logic
+            const hh = now.getHours();
+            const mm = now.getMinutes();
+            const ss = now.getSeconds();
+
+            const hDeg = (hh * 30) + (mm * 0.5);
+            const mDeg = (mm * 6) + (ss * 0.1);
+            const sDeg = ss * 6;
+
+            document.getElementById('hour-hand').style.transform = `translateX(-50%) rotate(${hDeg}deg)`;
+            document.getElementById('min-hand').style.transform = `translateX(-50%) rotate(${mDeg}deg)`;
+            document.getElementById('sec-hand').style.transform = `translateX(-50%) rotate(${sDeg}deg)`;
+
+            // Digital Logic
+            document.getElementById('h').innerText = String(hh).padStart(2, '0');
+            document.getElementById('m').innerText = String(mm).padStart(2, '0');
+            document.getElementById('s').innerText = String(ss).padStart(2, '0');
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function toggleClock() {
+            isDigital = !isDigital;
+            const analog = document.getElementById('analog-view');
+            const digital = document.getElementById('digital-view');
+            const hint = document.getElementById('toggle-hint');
+            
+            // Hide/Show markers when toggling
+            const markers = document.querySelectorAll('.marker');
+
+            if (isDigital) {
+                analog.style.display = 'none';
+                digital.style.display = 'flex';
+                markers.forEach(m => m.style.display = 'none');
+                hint.innerText = 'اضغط للتناظرية';
+            } else {
+                analog.style.display = 'block';
+                digital.style.display = 'none';
+                markers.forEach(m => m.style.display = 'block');
+                hint.innerText = 'اضغط للرقمية';
+            }
+        }
+
+        // --- Calculator Logic ---
+        const display = document.getElementById('display-text');
+        
+        function appendChar(char) {
+            if (display.innerText === '0' && char !== '.') {
+                display.innerText = char;
+            } else {
+                display.innerText += char;
+            }
+        }
+
+        function clearDisplay() {
+            display.innerText = '0';
+        }
+
+        function calculate() {
+            try {
+                let exp = display.innerText.replace(/%/g, '/100');
+                let result = eval(exp);
+                if(result.toString().length > 10) result = result.toFixed(8).replace(/\.?0+$/, "");
+                display.innerText = result;
+            } catch (e) {
+                display.innerText = 'Error';
+                setTimeout(clearDisplay, 1500);
+            }
+        }
+    </script>
+</body>
+</html>
